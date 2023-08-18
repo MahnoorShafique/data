@@ -31,7 +31,7 @@ class SchoolListCreateGenerics(generics.ListCreateAPIView):
 
 
 
-Django Indexes:
+Django Indexes in models.py:
 add below line in model.py
 class Meta:
         indexes = [
@@ -53,6 +53,27 @@ class School(models.Model):
         indexes = [
             models.Index(fields=['id'], name='School_id_idx'),
         ]
+or
+   class TestModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    teacher = models.UUIDField("Teacher UUID")
+    lesson_plan = models.UUIDField("Lesson Plan UUID")
+    class_uuid = models.UUIDField("Class UUID")
+    book = models.UUIDField("Book UUID", null=True, blank=True)
+    subject = models.UUIDField("Subject UUID", null=True)
+    grade = models.UUIDField("Grade UUID", null=True)
+    school = models.UUIDField("School UUID", null=True)
+    status = models.CharField(max_length=10, choices=StatusChoices.choices, default=StatusChoices.NOT_STARTED)
+    chapter = models.IntegerField()
+    time_spent = models.DurationField(null=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True, null=True, blank=True)
+    class Meta:
+        indexes = [
+            models.Index(fields=['school','teacher','book','class_uuid'], name='LessonPlanStatus_first_idx'),
+            models.Index(fields=['lesson_plan','chapter'], name='LessonPlanStatus_second_idx')
+        ]
+
 
 applying indexes on id field in school.
 

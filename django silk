@@ -1,0 +1,87 @@
+Configs For Silk:
+
+#### Start of all silk and indices configs in django app that was created
+base.txt: 
+django-silk==5.0.3
+
+
+urls.py: 
+from django.urls import path,include
+within urlpattern:
+   path("", include("silk.urls", namespace="silk"))
+urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
+
+
+
+view.py:
+from silk.profiling.profiler import silk_profile
+within class above function:
+   @silk_profile(name='LeaderboardView')
+
+e.g
+class SchoolListCreateGenerics(generics.ListCreateAPIView):
+    serializer_class = SchoolSerializer
+    @silk_profile(name='LeaderboardView')
+    def get_queryset(self):
+        """
+        Query Set Filter Based on Ids
+        """
+        queryset = School.objects.all().order_by(Lower('name'))
+
+
+
+
+Django Indexes:
+add below line in model.py
+class Meta:
+        indexes = [
+            models.Index(fields=['id'], name='School_id_idx'),
+        ]
+
+
+e.g
+
+class School(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField('School Name', max_length=50)
+    address = models.CharField('School Address', max_length=250, null=True)
+    city = models.CharField("City Name", max_length=50, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(default=None, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['id'], name='School_id_idx'),
+        ]
+
+applying indexes on id field in school.
+
+then run python manage.py migrate command
+
+### end of all silk and indices configs in django app that was created
+
+
+
+### configs in main :
+add in settings.py
+1. add 'silk' in INSTALLED_APPS 
+2. "silk.middleware.SilkyMiddleware", in MIDDLEWARE 
+
+add in middleware.py:
+
+ if request.path.startswith("/silk"):
+                return self.get_response(request) 
+
+here:
+   def __call__(self, request):
+        """Validate access token before processing the endpoint."""
+        try:
+            # Get the token from request
+            token = request.META.get("HTTP_AUTHORIZATION")
+            # Exclude this middleware for admin site
+            if request.path.startswith("/silk"):
+                return self.get_response(request)
+            if request.path.startswith("/management"):
+                return self.get_response(request)
+in urls.py add:
+urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
